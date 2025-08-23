@@ -15,6 +15,18 @@ router.post(
   parseBodyData,
   validateRequest(authValidation.registerUser),
   AuthControllers.registerUser
+);
+
+router.post(
+  "/verify-register-otp",
+  validateRequest(authValidation.verifyOtp),
+  AuthControllers.verifyOtpForRegister,
+);
+
+router.post(
+  "/resend-otp",
+  validateRequest(authValidation.forgotPassword),
+  AuthControllers.forgotPassword,
 )
 
 router.post(
