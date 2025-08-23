@@ -1,0 +1,234 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ===================== USER =====================
+model User {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  fullName     String
+  email        String     @unique
+  password     String
+  profileImage String?
+  gender       EnumGender
+  address      String
+  phone        String
+  role         UserRole   @default(STUDENT)
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  otps   Otp[]
+  carts  Cart[]
+  orders Order[]
+
+  @@map("users")
+}
+
+model Otp {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  otpCode   Int
+  expiry    DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([userId, otpCode])
+  @@map("otp")
+}
+
+model Product {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  brand       Brand?    @relation(fields: [brandId], references: [id])
+  brandId     String?   @db.ObjectId
+  category    Category? @relation(fields: [categoryId], references: [id])
+  categoryId  String?   @db.ObjectId
+
+  variants Variant[]
+  images   ProductImage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("products")
+}
+
+model Variant {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  product   Product @relation(fields: [productId], references: [id])
+  productId String  @db.ObjectId
+
+  sku   String @unique
+  price Int
+  stock Int    @default(0)
+
+  attributes VariantAttribute[]
+  images     VariantImage[]
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("variants")
+}
+
+model VariantAttribute {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  variant   Variant @relation(fields: [variantId], references: [id])
+  variantId String  @db.ObjectId
+  key       String
+  value     String
+}
+
+model ProductImage {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  product   Product @relation(fields: [productId], references: [id])
+  productId String  @db.ObjectId
+  url       String
+  altText   String?
+}
+
+model VariantImage {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  variant   Variant @relation(fields: [variantId], references: [id])
+  variantId String  @db.ObjectId
+  url       String
+  altText   String?
+}
+
+model Category {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  slug      String     @unique
+  parentId  String?    @db.ObjectId
+  isDeleted Boolean    @default(false)
+  parent    Category?  @relation("CategoryChildren", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children  Category[] @relation("CategoryChildren")
+  products  Product[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("category")
+}
+
+model Brand {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  name      String    @unique
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("brands")
+}
+
+model Cart {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  user      User?      @relation(fields: [userId], references: [id])
+  userId    String?    @db.ObjectId
+  token     String     @unique
+  items     CartItem[]
+  promo     Promo?     @relation(fields: [promoId], references: [id])
+  promoId   String?    @db.ObjectId
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  orders    Order[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  cartId    String   @db.ObjectId
+  variant   Variant  @relation(fields: [variantId], references: [id])
+  variantId String   @db.ObjectId
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("cartItems")
+}
+
+model Promo {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  code      String    @unique
+  type      PromoType
+  amount    Int
+  validFrom DateTime
+  validTo   DateTime
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  carts  Cart[]
+  orders Order[]
+
+  @@map("promos")
+}
+
+model Order {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  user      User?       @relation(fields: [userId], references: [id])
+  userId    String?     @db.ObjectId
+  cart      Cart        @relation(fields: [cartId], references: [id])
+  cartId    String      @db.ObjectId
+  items     OrderItem[]
+  promo     Promo?      @relation(fields: [promoId], references: [id])
+  promoId   String?     @db.ObjectId
+  total     Int
+  status    OrderStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  order     Order   @relation(fields: [orderId], references: [id])
+  orderId   String  @db.ObjectId
+  variant   Variant @relation(fields: [variantId], references: [id])
+  variantId String  @db.ObjectId
+  quantity  Int
+  price     Int
+}
+
+enum PromoType {
+  PERCENT
+  FIXED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  CANCELLED
+}
+
+enum UserRole {
+  SUPERADMIN
+  ADMIN
+  USER
+  INSTRUCTOR
+  STUDENT
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  BLOCKED
+  CANCELED
+}
+
+enum EnumGender {
+  Male
+  Female
+  Other
+}
