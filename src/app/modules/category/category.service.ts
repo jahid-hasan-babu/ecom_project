@@ -12,7 +12,6 @@ const createCategoryIntoDb = async (req: Request) => {
   const transaction = await prisma.$transaction(async (prisma) => {
     const payload = req.body as TCategory;
     const createLink = toSnakeCase(payload.name);
-
     const isCategoryExist = await prisma.category.findUnique({
       where: {
         slug: createLink,
