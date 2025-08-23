@@ -23,7 +23,7 @@ const getAllUsers = async (
   }
 
   if (search) {
-    whereCondition.username = {
+    whereCondition.fullName = {
       contains: search,
       mode: "insensitive",
     };
@@ -37,6 +37,12 @@ const getAllUsers = async (
     select: {
       id: true,
       fullName: true,
+      profileImage: true,
+      email: true,
+      address: true,
+      phone: true,
+      gender: true,
+      createdAt: true,
     },
   });
 
@@ -62,6 +68,13 @@ const getMyProfile = async (id: string) => {
     where: { id: id, status: "ACTIVE" },
     select: {
       id: true,
+      fullName: true,
+      profileImage: true,
+      email: true,
+      address: true,
+      phone: true,
+      gender: true,
+      createdAt: true,
     },
   });
   return user;
@@ -72,6 +85,13 @@ const getUserById = async (id: string) => {
     where: { id },
     select: {
       id: true,
+      fullName: true,
+      profileImage: true,
+      email: true,
+      address: true,
+      phone: true,
+      gender: true,
+      createdAt: true,
     },
   });
   return user;
@@ -98,15 +118,20 @@ const updateUser = async (id: string, payload: any, file: any) => {
   const result = await prisma.user.update({
     where: { id },
     data: {
-      
+      fullName: payload.fullName,
       profileImage: profileImage,
       phone: payload.phone,
       address: payload.address,
-      
+      gender: payload.gender
     },
     select: {
       id: true,
-      
+      fullName: true,
+      profileImage: true,
+      email: true,
+      address: true,
+      phone: true,
+      gender: true,
     },
   });
   return result;
@@ -133,7 +158,7 @@ const changePassword = async (
 
   if (!isMatch) {
     throw new ApiError(
-      httpStatus.UNAUTHORIZED,
+      httpStatus.BAD_REQUEST,
       "Current password is incorrect"
     );
   }
@@ -165,23 +190,7 @@ const deleteUser = async (id: string) => {
   return;
 };
 
-const updateUserStatus = async (userId: string, status: string) => {
-  const existingUser = await prisma.user.findUnique({
-    where: { id: userId }
-  });
-  if (!existingUser) {
-    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
-  };
-  const result = prisma.user.update({
-    where: { id: userId },
-    data: { status: status as UserStatus },
-    select: {
-      id: true,
-      status: true,
-    }
-  })
-  return result;
-}
+
 
 
 export const UserServices = {
@@ -191,5 +200,4 @@ export const UserServices = {
   updateUser,
   changePassword,
   deleteUser,
-  updateUserStatus,
 };
