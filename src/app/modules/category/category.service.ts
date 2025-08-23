@@ -134,17 +134,19 @@ const updateIntoDb = async (req: Request) => {
 };
 
 const deleteItemFromDb = async (id: string) => {
-  const transaction = await prisma.$transaction(async (prisma) => {
-    const deletedItem = await prisma.category.update({
-      where: { id },
-      data:{isDeleted: true}
-    });
 
-   
-    return deletedItem;
+  const existingCategory = await prisma.category.findUnique({
+    where: {id : id, isDeleted: false},
   });
+  if(!existingCategory){
+    throw new ApiError(httpStatus.NOT_FOUND, "Category not found");
+  }
+  const result = await prisma.category.update({
+    where: {id: id},
+    data:{ isDeleted: true }
+  })
 
-  return transaction;
+  return result;
 };
 
 
