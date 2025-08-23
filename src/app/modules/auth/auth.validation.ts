@@ -3,8 +3,12 @@ import z from "zod";
 
 const registerUser = z.object({
   body: z.object({
-    username: z.string({
-      required_error: "User Name is required!",
+    fullName: z.string({
+      required_error: "User fullName is required!",
+    }),
+    gender: z.enum(["Male", "Female", "Other"], {
+      required_error: "Gender is required!",
+      invalid_type_error: "Invalid gender value!",
     }),
     email: z
       .string({
@@ -17,7 +21,13 @@ const registerUser = z.object({
       .string({
         required_error: "Password is required!",
       })
-      .min(8, "password should be minimum 8 characters "),
+      .min(8, "Password should be minimum 8 characters"),
+    address: z.string({
+      required_error: "Address is required!",
+    }),
+    phone: z.string({
+      required_error: "Phone number is required!",
+    }),
   }),
 });
 
@@ -117,6 +127,5 @@ export const authValidation = {
   verifyOtp,
   resetPassword,
   changePassword,
-
   partnerRegistration,
 };

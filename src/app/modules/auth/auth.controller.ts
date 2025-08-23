@@ -37,14 +37,7 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const socialLogin = catchAsync(async (req: Request, res: Response) => {
-  const result = await AuthServices.socialLogin(req.body);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    message: "User social logged in successfully",
-    data: result,
-  });
-});
+
 
 const forgotPassword = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthServices.forgotPassword(req.body);
@@ -76,24 +69,13 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const addSignature = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user.id;
-  const file = req.file;
-  const result = await AuthServices.addSignature(userId, file);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    message: "Signature added successfully",
-    data: result,
-  });
-});
+
 
 export const AuthControllers = {
   registerUser,
   verifyOtpForRegister,
-  addSignature,
   loginUser,
   forgotPassword,
   verifyOtp,
-  socialLogin,
   resetPassword,
 };

@@ -1,18 +1,16 @@
 import { UserRole } from "@prisma/client";
 
 export interface IRegisterUser {
-  username: string;
+  fullName: string;
   email: string;
   password: string;
-  expertise: string;
-  description: string;
-  fcmToken: string;
-  role: UserRole;
+  gender: string;
+  address: string;
+  phone: string;
 }
 export interface IUserLogin {
   email: string;
   password: string;
-  fcmToken?: string;
 }
 export interface IOtp {
   userId: string;

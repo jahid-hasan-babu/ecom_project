@@ -10,6 +10,14 @@ const router = express.Router();
 
 
 router.post(
+  "/register", 
+  fileUploader.uploadProfileImage,
+  parseBodyData,
+  validateRequest(authValidation.registerUser),
+  AuthControllers.registerUser
+)
+
+router.post(
   "/login",
   validateRequest(authValidation.loginUser),
   AuthControllers.loginUser
@@ -20,7 +28,7 @@ router.post(
   AuthControllers.forgotPassword
 );
 router.post(
-  "/verify-reset-password-otp",
+  "/verify-otp",
   validateRequest(authValidation.verifyOtp),
   AuthControllers.verifyOtp
 );

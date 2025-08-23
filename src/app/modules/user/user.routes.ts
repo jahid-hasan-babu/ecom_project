@@ -1,15 +1,12 @@
 import express from 'express';
-import auth from "../../../middlewares/auth";
 import { UserControllers } from './user.controller';
-import { fileUploader } from "../../../middlewares/fileUploader";
-import parseBodyData from "../../../middlewares/parseBodyData";
 import { UserRole } from "@prisma/client";
+import auth from '../../middlewares/auth';
+import { fileUploader } from '../../middlewares/fileUploader';
+import parseBodyData from '../../middlewares/parseBodyData';
 
 const router = express.Router();
 
-router.get("/dashboard", auth(), UserControllers.dashBoardData);
-
-router.get("/performance", auth(), UserControllers.performance);
 
 router.get("/all-users", auth(), UserControllers.getAllUsers);
 

@@ -9,6 +9,7 @@ import { IRegisterUser, IUserLogin } from "./auth.interface ";
 import { jwtHelpers } from "../../helpers/jwtHelpers";
 import { emailTemplate } from "../../utils/emailNotifications/emailHTML";
 import { fileUploader } from "../../middlewares/fileUploader";
+import { EnumGender } from "@prisma/client";
 
 const registerUserIntoDB = async (payload: IRegisterUser, file: any) => {
   const existingUser = await prisma.user.findUnique({
@@ -38,11 +39,10 @@ const registerUserIntoDB = async (payload: IRegisterUser, file: any) => {
     data: {
       email: payload.email.trim(),
       password: hashedPassword,
-      username: payload.username,
-      fcmToken: payload.fcmToken,
-      expertise: payload.expertise,
-      description: payload.description,
-      role: payload.role,
+      fullName: payload.fullName,
+      gender: payload.gender as EnumGender,
+      address: payload.address,
+      phone: payload.phone,
       profileImage,
     },
   });
@@ -100,8 +100,10 @@ const verifyOtpForRegister = async (payload: {
   }
   const otpData = await prisma.otp.findUnique({
     where: {
-      userId: payload.userId,
-      otpCode: payload.otpCode,
+      userId_otpCode:{
+        userId: payload.userId,
+        otpCode: payload.otpCode,
+      }
     },
   });
   if (!otpData) {
@@ -138,11 +140,11 @@ const verifyOtpForRegister = async (payload: {
 
   return {
     id: userData.id,
-    username: userData.username,
     email: userData.email,
-    expertise: userData.expertise,
-    description: userData.description,
-    role: userData.role,
+    fullName: userData.fullName,
+    phone: userData.phone,
+    address: userData.address,
+    gender: userData.gender,
     profileImage: userData.profileImage,
     accessToken,
   };
@@ -218,24 +220,15 @@ const loginUserFromDB = async (payload: IUserLogin) => {
       config.jwt.access_expires_in as string
     );
 
-    if (payload.fcmToken) {
-      await prisma.user.update({
-        where: {
-          id: userData.id,
-        },
-        data: {
-          fcmToken: payload.fcmToken,
-        },
-      });
-    }
+   
 
     return {
       id: userData.id,
-      username: userData.username,
       email: userData.email,
-      expertise: userData.expertise,
-      description: userData.description,
-      role: userData.role,
+      fullName: userData.fullName,
+      phone: userData.phone,
+      address: userData.address,
+      gender: userData.gender,
       profileImage: userData.profileImage,
       accessToken,
     };
@@ -292,8 +285,10 @@ const forgotPassword = async (payload: { email: string }) => {
 const verifyOtp = async (payload: { userId: string; otpCode: number }) => {
   const otpData = await prisma.otp.findUnique({
     where: {
-      userId: payload.userId,
-      otpCode: payload.otpCode,
+      userId_otpCode:{
+        userId: payload.userId,
+        otpCode: payload.otpCode,
+      }
     },
   });
   if (!otpData) {
@@ -340,119 +335,13 @@ const resetPassword = async (userId: string, newPassword: string) => {
   };
 };
 
-const socialLogin = async (payload: IRegisterUser) => {
-  const existingUser = await prisma.user.findUnique({
-    where: {
-      email: payload.email,
-    },
-  });
 
-  if (existingUser && existingUser.isSocial === false) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      "You are using normal login, please login with your email and password"
-    );
-  }
-  if (existingUser) {
-    if (existingUser.isSocial === true) {
-      const accessToken = jwtHelpers.generateToken(
-        {
-          id: existingUser.id,
-          email: existingUser.email as string,
-          role: existingUser.role,
-        },
-        config.jwt.access_secret as Secret,
-        config.jwt.access_expires_in as string
-      );
 
-      if (payload.fcmToken) {
-        await prisma.user.update({
-          where: {
-            id: existingUser.id,
-          },
-          data: {
-            fcmToken: payload.fcmToken,
-          },
-        });
-      }
-
-      return {
-        id: existingUser.id,
-        username: existingUser.username,
-        email: existingUser.email,
-        expertise: existingUser.expertise,
-        description: existingUser.description,
-        role: existingUser.role,
-        profileImage: existingUser.profileImage,
-        accessToken,
-      };
-    }
-  } else {
-    const userData = {
-      ...payload,
-      email: payload.email.trim(),
-      isSocial: true,
-    };
-
-    const result = await prisma.user.create({
-      data: userData,
-    });
-
-    const accessToken = jwtHelpers.generateToken(
-      {
-        id: result.id,
-        email: result.email as string,
-        role: result.role,
-      },
-      config.jwt.access_secret as Secret,
-      config.jwt.access_expires_in as string
-    );
-
-    return {
-      id: result.id,
-      username: result.username,
-      email: result.email,
-      expertise: result.expertise,
-      description: result.description,
-      role: result.role,
-      profileImage: result.profileImage,
-      accessToken,
-    };
-  }
-};
-
-const addSignature = async (userId: string, file: any) => {
-  let signature = null;
-  if (file) {
-    const uploadResult = await fileUploader.uploadToDigitalOcean(file);
-    signature = uploadResult.Location;
-  }
-  const result = await prisma.user.update({
-    where: {
-      id: userId,
-    },
-    data: {
-      signature: signature,
-    },
-  });
-  return {
-    id: result.id,
-    username: result.username,
-    email: result.email,
-    expertise: result.expertise,
-    description: result.description,
-    signature: result.signature,
-    role: result.role,
-    profileImage: result.profileImage,
-  };
-};
 
 export const AuthServices = {
   loginUserFromDB,
   registerUserIntoDB,
   verifyOtpForRegister,
-  addSignature,
-  socialLogin,
   forgotPassword,
   verifyOtp,
   resetPassword,
