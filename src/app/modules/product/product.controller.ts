@@ -44,37 +44,19 @@ const getSingleProduct = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// const getMyProducts = catchAsync(async (req: Request, res: Response) => {
-//   const userId = req.user.id;
-//   const options = req.query;
-//   const products = await productService.getMyProducts(userId, options);
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: "Products fetched successfully",
-//     data: products,
-//   });
-// });
-
-// const updateProduct = catchAsync(async (req: Request, res: Response) => {
-//   const userId = req.user.id;
-//   const { productId } = req.params;
-//   const payload = req.body;
-//   const files = req.files;
-//   const product = await productService.updateProduct(
-//     userId,
-//     productId,
-//     payload,
-//     files as any
-//   );
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: "Product updated successfully",
-//     data: product,
-//   });
-// });
-
+const updateProductInfo = catchAsync(async (req: Request, res: Response) => {
+  const productId = req.params.productId;
+  const payload = req.body; 
+  const files = req.files as any;
+  const promoId = req.body.promoId;
+  const result = await productService.updateProductInfo(productId, payload, files, promoId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Product update successfully",
+    data: result,
+  });
+});
 
 const toggleProductActive = catchAsync(async (req: Request, res: Response) => {
   const productId = req.params.productId;
@@ -87,9 +69,24 @@ const toggleProductActive = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const updateVariantInfo = catchAsync(async (req: Request, res: Response) => {
+  const productId = req.params.productId;
+  const variantId = req.params.variantId;
+  const payload = req.body; 
+  const result = await productService.updateVariantInfo(productId, variantId, payload);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Variant update successfully",
+    data: result,
+  });
+});
+
 export const productController = {
   createProduct,
   getAllProducts,
   getSingleProduct,
-  toggleProductActive
+  toggleProductActive,
+  updateProductInfo,
+  updateVariantInfo
 };

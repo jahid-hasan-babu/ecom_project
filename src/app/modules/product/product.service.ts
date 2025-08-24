@@ -229,11 +229,106 @@ const toggleProductActive = async (productId: string) => {
 };
 
 
+const updateProductInfo = async (
+  productId: string,
+  payload: { name?: string; description?: string },
+  files?: { productImage?: Express.Multer.File | Express.Multer.File[] },
+  promoId?: string,
+) => {
+  const existingProduct = await prisma.product.findUnique({
+    where: { id: productId },
+    include: { images: true, promo: true }, 
+  });
+
+  if (!existingProduct) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Product not found");
+  }
+
+  let productImages: { url: string; isPrimary: boolean }[] = [];
+
+
+  if (files?.productImage) {
+    const imagesArray = Array.isArray(files.productImage)
+      ? files.productImage
+      : [files.productImage];
+
+    productImages = await Promise.all(
+      imagesArray.map(async (file) => {
+        const uploaded = await fileUploader.uploadToDigitalOcean(file);
+        return { url: uploaded.Location, isPrimary: false };
+      })
+    );
+  }
+
+
+  let promoUpdate = {};
+  if (promoId) {
+    promoUpdate = {
+      promo: {
+        connect: { id: promoId }, 
+      },
+    };
+  }
+
+  const updatedProduct = await prisma.product.update({
+    where: { id: productId },
+    data: {
+      name: payload.name ?? existingProduct.name,
+      description: payload.description ?? existingProduct.description,
+      images: productImages.length
+        ? {
+            create: productImages,
+          }
+        : undefined,
+      ...promoUpdate,
+    },
+    include: {
+      images: true,
+      promo: true,
+    },
+  });
+
+  return updatedProduct;
+};
+
+
+const updateVariantInfo = async (
+  variantId: string,
+  productId: string,
+  payload: { price?: number; stock?: number; isActive?: boolean }
+) => {
+  const existingVariant = await prisma.variant.findFirst({
+    where: {
+      id: variantId,
+      productId: productId,
+    }
+  })
+  if (!existingVariant) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Variant not found");
+  }
+  const updatedVariant = await prisma.variant.update({
+    where: { id: variantId },
+    data: {
+      price: payload.price,
+      stock: payload.stock,
+      isActive: payload.isActive,
+    },
+    include: {
+      images: true,
+      attributes: true,
+    },
+  });
+
+  return updatedVariant;
+};
+
 
 
 export const productService = {
   createProduct,
   getAllProducts,
   getSingleProduct,
-  toggleProductActive
+  toggleProductActive,
+  updateProductInfo,
+  updateVariantInfo
 };
