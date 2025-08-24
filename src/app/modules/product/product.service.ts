@@ -6,6 +6,7 @@ import { ICreateProduct } from "./product.interface";
 import { fileUploader } from "../../middlewares/fileUploader";
 import { IPaginationOptions } from "../../interface/pagination.type";
 import { paginationHelper } from "../../helpers/paginationHelper";
+import ApiError from "../../errors/ApiError";
 
 
 const splitImages = (images: Express.Multer.File[], parts: number): Express.Multer.File[][] => {
@@ -95,96 +96,6 @@ const createProduct = async (
   return product;
 };
 
-const getAllProducts1 = async (
-  options: IPaginationOptions & {
-    search?: string;
-    categoryId?: string;
-    brandId?: string;
-    minPrice?: number;
-    maxPrice?: number;
-    sortByPrice?: "asc" | "desc";
-  }
-) => {
-  const { limit, page, skip } = paginationHelper.calculatePagination(options);
-  const { search, categoryId, brandId, minPrice, maxPrice, sortByPrice } = options;
-
-  const whereCondition: any = {};
-
-  if (categoryId) whereCondition.categoryId = categoryId;
-  if (brandId) whereCondition.brandId = brandId;
-
-  if (minPrice !== undefined || maxPrice !== undefined) {
-    whereCondition.variants = {
-      some: {
-        price: {
-          ...(minPrice !== undefined ? { gte: minPrice } : {}),
-          ...(maxPrice !== undefined ? { lte: maxPrice } : {}),
-        },
-      },
-    };
-  }
-
-  if (search) {
-    whereCondition.name = {
-      contains: search,
-      mode: "insensitive",
-    };
-  }
-
-
-  let products = await prisma.product.findMany({
-    where: {
-      isActive: true,
-      ...whereCondition,
-    },
-    include: {
-      images: true,
-      variants: {
-        include: {
-          images: true,
-          attributes: true,
-        },
-      },
-      promo: true,
-      brand: true,
-      category: true,
-    },
-  });
-
- 
-  if (sortByPrice === "asc") {
-    products.sort(
-      (a, b) =>
-        Math.min(...a.variants.map((v) => v.price)) -
-        Math.min(...b.variants.map((v) => v.price))
-    );
-  } else if (sortByPrice === "desc") {
-    products.sort(
-      (a, b) =>
-        Math.max(...b.variants.map((v) => v.price)) -
-        Math.max(...a.variants.map((v) => v.price))
-    );
-  }
-
-  const totalProducts = await prisma.product.count({
-    where: {
-      isActive: true,
-    }
-  });
-
-  products = products.slice(skip, skip + limit);
-
-  return {
-    meta: {
-      page,
-      limit,
-      total: totalProducts,
-      totalPages: Math.ceil(totalProducts / limit),
-    },
-    data: products,
-  };
-};
-
 const getAllProducts = async (
   options: IPaginationOptions & {
     search?: string;
@@ -269,11 +180,60 @@ const getAllProducts = async (
 
 
 
+const getSingleProduct = async (productId: string) => {
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    include: {
+      images: true, 
+      variants: {
+        include: {
+          images: true, 
+          attributes: true, 
+        },
+      },
+      brand: true, 
+      category: true, 
+      promo: true,
+    },
+  });
+
+  if (!product) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Product not found");
+  }
+
+  return product; 
+};
+
+
+
+const toggleProductActive = async (productId: string) => {
+
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    select: { isActive: true },
+  });
+
+  if (!product) throw new ApiError(httpStatus.NOT_FOUND, "Product not found");
+
+
+  const updatedProduct = await prisma.product.update({
+    where: { id: productId },
+    data: { isActive: !product.isActive },
+    select: {
+      id: true,
+      isActive: true,
+    }
+  });
+
+  return updatedProduct;
+};
 
 
 
 
 export const productService = {
   createProduct,
-  getAllProducts
+  getAllProducts,
+  getSingleProduct,
+  toggleProductActive
 };

@@ -22,6 +22,10 @@ router.post(
 
 router.get("/all-product", productController.getAllProducts);
 
+router.get("/single-product/:productId", productController.getSingleProduct);
+
+router.post("/product-toggle/:productId", auth(UserRole.ADMIN, UserRole.SUPERADMIN), productController.toggleProductActive);
+
 
 
 export const ProductRouters = router;

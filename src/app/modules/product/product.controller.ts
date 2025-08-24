@@ -33,16 +33,16 @@ const getAllProducts = catchAsync(async (req: Request, res: Response) => {
 
 
 
-// const getSingleProduct = catchAsync(async (req: Request, res: Response) => {
-//   const productId = req.params.productId;
-//   const product = await productService.getSingleProduct(productId);
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: "Product fetched successfully",
-//     data: product,
-//   });
-// });
+const getSingleProduct = catchAsync(async (req: Request, res: Response) => {
+  const productId = req.params.productId;
+  const product = await productService.getSingleProduct(productId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Product fetched successfully",
+    data: product,
+  });
+});
 
 // const getMyProducts = catchAsync(async (req: Request, res: Response) => {
 //   const userId = req.user.id;
@@ -76,7 +76,20 @@ const getAllProducts = catchAsync(async (req: Request, res: Response) => {
 // });
 
 
+const toggleProductActive = catchAsync(async (req: Request, res: Response) => {
+  const productId = req.params.productId;
+  const product = await productService.toggleProductActive(productId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Product toggle successfully",
+    data: product,
+  });
+});
+
 export const productController = {
   createProduct,
   getAllProducts,
+  getSingleProduct,
+  toggleProductActive
 };
