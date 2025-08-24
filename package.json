@@ -1,5 +1,5 @@
 {
-  "name": "pe_picks-server",
+  "name": "ecom-server",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {

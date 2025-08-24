@@ -34,7 +34,7 @@ console.log(path.join(__dirname, "..", "public", "uploads"));
 
 app.get("/", (req: Request, res: Response) => {
   res.send({
-    Message: "The pe-picks server is running. . .",
+    Message: "The ecom server is running. . .",
   });
 });
 
