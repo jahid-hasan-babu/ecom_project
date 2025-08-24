@@ -217,23 +217,14 @@ const upload = multer({ storage });
 const uploadProfileImage = upload.single("profileImage");
 const uploadSignatureImage = upload.single("signature");
 const uploadMultipleImage = upload.fields([
-  { name: "profileImage", maxCount: 1 },
-  { name: "coverImage", maxCount: 1 },
+  { name: "productImage", maxCount: 10 },
+  { name: "variantImages", maxCount: 100 },
 ]);
-
-const uplodadCourseFile = upload.fields([
-  { name: "videoUrl", maxCount: 100 },
-  { name: "coverImage", maxCount: 1 },
-]);
-const uploadPickImage = upload.single("pickImage");
-const uploadProductImage = upload.single("productImage");
 const uploadFile = upload.single("file");
-const uploadCategoryIcon = upload.single("icon");
-const uploadServiceImage = upload.array("serviceImage", 5);
 
-// ----------------- S3 Client -----------------
+
 export const s3Client = new S3Client({
-  region: config.S3.space_bucket, // ✅ FIX: use region not bucket
+  region: config.S3.space_bucket, 
   endpoint: config.S3.space_endpoint,
   credentials: {
     accessKeyId: config.S3.space_accesskey || "",
@@ -241,7 +232,7 @@ export const s3Client = new S3Client({
   },
 });
 
-// ----------------- Multipart Upload -----------------
+
 const uploadToDigitalOcean = async (
   file: Express.Multer.File
 ): Promise<{ Location: string; Bucket: string; Key: string }> => {
@@ -250,7 +241,6 @@ const uploadToDigitalOcean = async (
   const Bucket = config.S3.space_bucket || "";
   const Key = `uploads/${Date.now()}_${file.originalname}`;
 
-  // Step 1: Initiate multipart upload
   const { UploadId } = await s3Client.send(
     new CreateMultipartUploadCommand({
       Bucket,
@@ -302,7 +292,6 @@ const uploadToDigitalOcean = async (
     };
   } catch (error) {
     console.error("Error in multipart upload:", error);
-    // Rollback on failure
     await s3Client.send(
       new AbortMultipartUploadCommand({ Bucket, Key, UploadId })
     );
@@ -310,17 +299,12 @@ const uploadToDigitalOcean = async (
   }
 };
 
-// ----------------- Exports -----------------
+
 export const fileUploader = {
   upload,
   uploadToDigitalOcean,
   uploadProfileImage,
   uploadMultipleImage,
-  uploadPickImage,
-  uploadServiceImage,
   uploadSignatureImage,
   uploadFile,
-  uplodadCourseFile,
-  uploadProductImage,
-  uploadCategoryIcon,
 };
