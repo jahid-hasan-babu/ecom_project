@@ -15,7 +15,7 @@ router.post(
   BrandController.createBrand
 );
 
-router.get("/", auth(), BrandController.getBrandList);
+router.get("/",  BrandController.getBrandList);
 
 router.get("/:id", auth(), BrandController.getBrandById);
 

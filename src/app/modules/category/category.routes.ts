@@ -16,7 +16,7 @@ router.post(
   CategoryController.createCategory
 );
 
-router.get("/all-category", auth(), CategoryController.getCategoryList);
+router.get("/all-category",  CategoryController.getCategoryList);
 
 router.get("/single-category/:id", auth(), CategoryController.getCategoryById);
 
