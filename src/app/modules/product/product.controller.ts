@@ -19,34 +19,17 @@ const createProduct = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// const getAllProducts = catchAsync(async (req: Request, res: Response) => {
-//   const userId = req.user.id;
-//   const options = req.query;
-//   const products = await productService.getAllProducts(userId, options);
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: "Products fetched successfully",
-//     data: products,
-//   });
-// });
+const getAllProducts = catchAsync(async (req: Request, res: Response) => {
+  const options = req.query;
+  const products = await productService.getAllProducts(options);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Products fetched successfully",
+    data: products,
+  });
+});
 
-// const getAllPopulerProducts = catchAsync(
-//   async (req: Request, res: Response) => {
-//     const userId = req.user.id;
-//     const options = req.query;
-//     const products = await productService.getAllPopulerProducts(
-//       userId,
-//       options
-//     );
-//     sendResponse(res, {
-//       statusCode: httpStatus.OK,
-//       success: true,
-//       message: "Products fetched successfully",
-//       data: products,
-//     });
-//   }
-// );
 
 
 
@@ -95,4 +78,5 @@ const createProduct = catchAsync(async (req: Request, res: Response) => {
 
 export const productController = {
   createProduct,
+  getAllProducts,
 };

@@ -20,6 +20,8 @@ router.post(
   productController.createProduct
 );
 
+router.get("/all-product", productController.getAllProducts);
+
 
 
 export const ProductRouters = router;
