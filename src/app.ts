@@ -8,6 +8,7 @@ import morgan from "morgan";
 import { successTemplate } from "./app/lib/successTemplete";
 import { cancelTemplate } from "./app/lib/cancelTemplete";
 import bodyParser from "body-parser";
+import rateLimit from "express-rate-limit";
 
 const app: Application = express();
 app.use(
@@ -20,7 +21,15 @@ app.use(
   })
 );
 
-//parser
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 100, 
+  message: {
+    success: false,
+    message: "Too many requests from this IP, please try again after 15 minutes.",
+  },
+});
+app.use(limiter);
 app.use(bodyParser.json({ limit: "100mb" }));
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
